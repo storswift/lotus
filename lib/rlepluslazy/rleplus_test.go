@@ -151,20 +151,20 @@ func BenchmarkOldRLE(b *testing.B) {
 func BenchmarkDecodeEncode(b *testing.B) {
 	b.ReportAllocs()
 	var r uint64
+	out := make([]byte, 0, len(goldenRLE))
+	for i := 0; i < b.N; i++ {
+		rle, _ := FromBuf(goldenRLE)
+		rit, _ := rle.RunIterator()
+		out, _ = EncodeRuns(rit, out)
+		r = r + uint64(len(out))
+	}
+
 	/*
-		out := make([]byte, 0, len(goldenRLE))
 		for i := 0; i < b.N; i++ {
-			rle, _ := FromBuf(goldenRLE)
-			rit, _ := rle.RunIterator()
-			out, _ = EncodeRuns(rit, out)
+			rle, _ := rleplus.Decode(goldenRLE)
+			out, _, _ := rleplus.Encode(rle)
 			r = r + uint64(len(out))
 		}
 	*/
-
-	for i := 0; i < b.N; i++ {
-		rle, _ := rleplus.Decode(goldenRLE)
-		out, _, _ := rleplus.Encode(rle)
-		r = r + uint64(len(out))
-	}
 	Res = Res + r
 }
