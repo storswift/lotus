@@ -98,7 +98,10 @@ func (bv *wbitvec) Put(val byte, count byte) {
 	bv.bitCap = bv.bitCap + count
 
 	// increase len of the buffer if it is needed
-	bv.buf = append(bv.buf, 0)[:bv.index+1]
+	if bv.index+1 > cap(bv.buf) {
+		bv.buf = append(bv.buf, 0)
+	}
+	bv.buf = bv.buf[:bv.index+1]
 	// save the bits
 	bv.buf[bv.index] = byte(bv.bits)
 

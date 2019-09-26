@@ -1,0 +1,25 @@
+goos: linux
+goarch: amd64
+pkg: github.com/filecoin-project/go-lotus/lib/rlepluslazy
+BenchmarkDecodeEncode-4   	   17929	     63443 ns/op	     128 B/op	       3 allocs/op
+BenchmarkDecodeEncode-4   	   18742	     65732 ns/op	     128 B/op	       3 allocs/op
+BenchmarkDecodeEncode-4   	   19166	     64543 ns/op	     128 B/op	       3 allocs/op
+BenchmarkDecodeEncode-4   	   19014	     63505 ns/op	     128 B/op	       3 allocs/op
+BenchmarkDecodeEncode-4   	   18150	     64074 ns/op	     128 B/op	       3 allocs/op
+BenchmarkDecodeEncode-4   	   18434	     64577 ns/op	     128 B/op	       3 allocs/op
+BenchmarkDecodeEncode-4   	   17716	     65030 ns/op	     128 B/op	       3 allocs/op
+BenchmarkDecodeEncode-4   	   18777	     64324 ns/op	     128 B/op	       3 allocs/op
+BenchmarkDecodeEncode-4   	   18652	     65096 ns/op	     128 B/op	       3 allocs/op
+BenchmarkDecodeEncode-4   	   19191	     64385 ns/op	     128 B/op	       3 allocs/op
+BenchmarkDecodeEncode-4   	   18316	     63713 ns/op	     128 B/op	       3 allocs/op
+BenchmarkDecodeEncode-4   	   18640	     64182 ns/op	     128 B/op	       3 allocs/op
+BenchmarkDecodeEncode-4   	   18024	     63501 ns/op	     128 B/op	       3 allocs/op
+BenchmarkDecodeEncode-4   	   18483	     63424 ns/op	     128 B/op	       3 allocs/op
+BenchmarkDecodeEncode-4   	   18994	     66146 ns/op	     128 B/op	       3 allocs/op
+BenchmarkDecodeEncode-4   	   19016	     64540 ns/op	     128 B/op	       3 allocs/op
+BenchmarkDecodeEncode-4   	   19230	     63296 ns/op	     128 B/op	       3 allocs/op
+BenchmarkDecodeEncode-4   	   18334	     64689 ns/op	     128 B/op	       3 allocs/op
+BenchmarkDecodeEncode-4   	   18336	     64101 ns/op	     128 B/op	       3 allocs/op
+BenchmarkDecodeEncode-4   	   18630	     63821 ns/op	     128 B/op	       3 allocs/op
+PASS
+ok  	github.com/filecoin-project/go-lotus/lib/rlepluslazy	36.985s

@@ -137,3 +137,7 @@ func RunsFromBits(source BitIterator) (RunIterator, error) {
 	}
 	return it, nil
 }
+
+func RunsFromSlice(slice []uint64) (RunIterator, error) {
+	return RunsFromBits(BitsFromSlice(slice))
+}

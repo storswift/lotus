@@ -1,0 +1,7 @@
+goos: linux
+goarch: amd64
+pkg: github.com/filecoin-project/go-lotus/lib/rlepluslazy
+BenchmarkDecodeEncode-4   	   15496	     76178 ns/op	     128 B/op	       3 allocs/op
+BenchmarkDecodeEncode-4   	   15835	     76912 ns/op	     128 B/op	       3 allocs/op
+BenchmarkDecodeEncode-4   	   16012	     79543 ns/op	     128 B/op	       3 allocs/op
+BenchmarkDecodeEncode-4   	
