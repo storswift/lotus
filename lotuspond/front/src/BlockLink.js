@@ -31,7 +31,7 @@ class BlockLink extends React.Component {
   render() {
     let info = <span></span>
     if(this.props.block) {
-      info = <span>&nbsp;(by <Address client={this.props.conn} addr={this.props.block.Miner} mountWindow={this.props.mountWindow} short={true}/>)</span>
+      info = <span>&nbsp;(by <Address client={this.props.conn} addr={this.props.block.Miner} mountWindow={this.props.mountWindow} short={true}/> <abbr title="ticket count">T:{this.props.block.Tickets.length}</abbr>)</span>
     }
 
     return <span><a href="#" onClick={this.openBlockViewer}><abbr title={this.props.cid['/']}>{this.props.cid['/'].substr(-8)}</abbr></a>{info}</span>
