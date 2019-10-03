@@ -92,3 +92,7 @@ replace github.com/golangci/golangci-lint => github.com/golangci/golangci-lint v
 replace github.com/filecoin-project/go-bls-sigs => ./extern/go-bls-sigs
 
 replace github.com/filecoin-project/go-sectorbuilder => ./extern/go-sectorbuilder
+
+replace github.com/ipfs/go-hamt-ipld => /home/magik6k/gohack/github.com/ipfs/go-hamt-ipld
+
+replace github.com/filecoin-project/go-amt-ipld => /home/magik6k/gohack/github.com/filecoin-project/go-amt-ipld

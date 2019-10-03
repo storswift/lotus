@@ -1,7 +1,9 @@
 package chain
 
 import (
+	"bytes"
 	"context"
+	"encoding/hex"
 	"fmt"
 	"sync"
 	"time"
@@ -378,6 +380,76 @@ func (syncer *Syncer) validateTickets(ctx context.Context, mworker address.Addre
 	return nil
 }
 
+func aFromS(as string) string {
+	a, err := address.NewFromBytes([]byte(as))
+	if err != nil {
+		return "-err-"
+	}
+
+	return a.String()
+}
+
+func (syncer *Syncer) actState(actb []byte) string {
+	var act types.Actor
+	if err := act.UnmarshalCBOR(bytes.NewReader(actb)); err != nil {
+		return "-aef-"
+	}
+
+	b, err := syncer.store.Blockstore().Get(act.Head)
+	if err != nil {
+		return "-dsfbdfb-"
+	}
+
+	return hex.EncodeToString(b.RawData())
+}
+
+func (syncer *Syncer) printStateDiff(ctx context.Context, baseC, newC cid.Cid) {
+	base, err := hamt.LoadNode(ctx, hamt.CSTFromBstore(syncer.store.Blockstore()), baseC)
+	if err != nil {
+		return
+	}
+
+	new, err := hamt.LoadNode(ctx, hamt.CSTFromBstore(syncer.store.Blockstore()), newC)
+	if err != nil {
+		return
+	}
+
+	baseSet := map[string]interface{}{}
+
+	if err := base.ForEach(ctx, func(k string, val interface{}) error {
+		baseSet[k] = val
+		return nil
+	}); err != nil {
+		return
+	}
+
+	if err := new.ForEach(ctx, func(k string, val interface{}) error {
+		baseElem, ok := baseSet[k]
+		if !ok {
+			fmt.Printf("+%s {todo}\n", aFromS(k))
+			return nil
+		}
+
+		baseCbg := baseElem.(*cbg.Deferred)
+		newCbg := val.(*cbg.Deferred)
+
+		delete(baseSet, k)
+		if bytes.Equal(baseCbg.Raw, newCbg.Raw) {
+			return nil
+		}
+
+		fmt.Printf("*%s {%s ~ %s}\n", aFromS(k), syncer.actState(baseCbg.Raw), syncer.actState(newCbg.Raw))
+
+		return nil
+	}); err != nil {
+		return
+	}
+
+	for k := range baseSet {
+		fmt.Printf("-%s {todo}\n", aFromS(k))
+	}
+}
+
 // Should match up with 'Semantical Validation' in validation.md in the spec
 func (syncer *Syncer) ValidateBlock(ctx context.Context, b *types.FullBlock) error {
 	h := b.Header
@@ -393,6 +465,8 @@ func (syncer *Syncer) ValidateBlock(ctx context.Context, b *types.FullBlock) err
 	}
 
 	if stateroot != h.ParentStateRoot {
+		syncer.printStateDiff(ctx, h.ParentStateRoot, stateroot)
+
 		return xerrors.Errorf("parent state root did not match computed state (%s != %s)", stateroot, h.ParentStateRoot)
 	}
 
