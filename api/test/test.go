@@ -39,6 +39,7 @@ func TestApis(t *testing.T, b APIBuilder) {
 	t.Run("id", ts.testID)
 	t.Run("testConnectTwo", ts.testConnectTwo)
 	t.Run("testMining", ts.testMining)
+	t.Run("testPost", ts.testPost)
 }
 
 func (ts *testSuite) testVersion(t *testing.T) {
