@@ -311,7 +311,11 @@ func (m *Miner) createBlock(base *MiningBase, ticket *types.Ticket, proof types.
 		return nil, xerrors.Errorf("message filtering failed: %w", err)
 	}
 
-	uts := base.ts.MinTimestamp() + uint64(build.BlockDelay*(len(base.tickets)+1))
+	uts := uint64(time.Now().Unix())
+	minUts := base.ts.MinTimestamp() + uint64(build.BlockDelay*(len(base.tickets)+1))
+	if uts > minUts {
+		uts = minUts
+	}
 
 	// why even return this? that api call could just submit it for us
 	return m.api.MinerCreateBlock(context.TODO(), m.addresses[0], base.ts, append(base.tickets, ticket), proof, msgs, uint64(uts))
