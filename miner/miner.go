@@ -313,7 +313,7 @@ func (m *Miner) createBlock(base *MiningBase, ticket *types.Ticket, proof types.
 
 	uts := uint64(time.Now().Unix())
 	minUts := base.ts.MinTimestamp() + uint64(build.BlockDelay*(len(base.tickets)+1))
-	if uts > minUts {
+	if uts < minUts {
 		uts = minUts
 	}
 
