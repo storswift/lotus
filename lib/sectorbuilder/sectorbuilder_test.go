@@ -15,11 +15,11 @@ import (
 	"github.com/filecoin-project/lotus/lib/sectorbuilder"
 )
 
-const sectorSize = 1024
+const sectorSize = 16 << 20
 
 func TestSealAndVerify(t *testing.T) {
 	//t.Skip("this is slow")
-	os.Setenv("BELLMAN_NO_GPU", "1")
+	//os.Setenv("BELLMAN_NO_GPU", "1")
 
 	build.SectorSizes = []uint64{sectorSize}
 
