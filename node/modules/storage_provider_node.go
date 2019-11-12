@@ -78,7 +78,7 @@ func (n *ProviderNodeAdapter) GetBalance(ctx context.Context, addr address.Addre
 	return bal, nil
 }
 
-func (n *ProviderNodeAdapter) PublishDeals(ctx context.Context, deal storagemarket.MinerDeal) (storagemarket.DealID, error) {
+func (n *ProviderNodeAdapter) PublishDeals(ctx context.Context, deal storagemarket.MinerDeal) (storagemarket.DealID, cid.Cid, error) {
 	log.Info("publishing deal")
 
 	storageDeal := actors.StorageDeal{
@@ -87,18 +87,18 @@ func (n *ProviderNodeAdapter) PublishDeals(ctx context.Context, deal storagemark
 
 	worker, err := n.api.StateMinerWorker(ctx, deal.Proposal.Provider, nil)
 	if err != nil {
-		return 0, err
+		return 0, cid.Undef, err
 	}
 
 	if err := api.SignWith(ctx, n.api.WalletSign, worker, &storageDeal); err != nil {
-		return 0, xerrors.Errorf("signing storage deal failed: ", err)
+		return 0, cid.Undef, xerrors.Errorf("signing storage deal failed: ", err)
 	}
 
 	params, err := actors.SerializeParams(&actors.PublishStorageDealsParams{
 		Deals: []actors.StorageDeal{storageDeal},
 	})
 	if err != nil {
-		return 0, xerrors.Errorf("serializing PublishStorageDeals params failed: ", err)
+		return 0, cid.Undef, xerrors.Errorf("serializing PublishStorageDeals params failed: ", err)
 	}
 
 	// TODO: We may want this to happen after fetching data
@@ -112,24 +112,24 @@ func (n *ProviderNodeAdapter) PublishDeals(ctx context.Context, deal storagemark
 		Params:   params,
 	})
 	if err != nil {
-		return 0, err
+		return 0, cid.Undef, err
 	}
 	r, err := n.api.StateWaitMsg(ctx, smsg.Cid())
 	if err != nil {
-		return 0, err
+		return 0, cid.Undef, err
 	}
 	if r.Receipt.ExitCode != 0 {
-		return 0, xerrors.Errorf("publishing deal failed: exit %d", r.Receipt.ExitCode)
+		return 0, cid.Undef, xerrors.Errorf("publishing deal failed: exit %d", r.Receipt.ExitCode)
 	}
 	var resp actors.PublishStorageDealResponse
 	if err := resp.UnmarshalCBOR(bytes.NewReader(r.Receipt.Return)); err != nil {
-		return 0, err
+		return 0, cid.Undef, err
 	}
 	if len(resp.DealIDs) != 1 {
-		return 0, xerrors.Errorf("got unexpected number of DealIDs from")
+		return 0, cid.Undef, xerrors.Errorf("got unexpected number of DealIDs from")
 	}
 
-	return storagemarket.DealID(resp.DealIDs[0]), nil
+	return storagemarket.DealID(resp.DealIDs[0]), smsg.Cid(), nil
 }
 
 var _ storagemarket.StorageProviderNode = &ProviderNodeAdapter{}

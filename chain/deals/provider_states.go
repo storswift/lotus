@@ -1,7 +1,6 @@
 package deals
 
 import (
-	"bytes"
 	"context"
 
 	ipldfree "github.com/ipld/go-ipld-prime/impl/free"
@@ -16,6 +15,7 @@ import (
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/filecoin-project/lotus/lib/padreader"
 	"github.com/filecoin-project/lotus/storage/sectorblocks"
+	"github.com/filecoin-project/lotus/storagemarket"
 )
 
 type providerHandlerFunc func(ctx context.Context, deal MinerDeal) (func(*MinerDeal), error)
@@ -91,60 +91,27 @@ func (p *Provider) accept(ctx context.Context, deal MinerDeal) (func(*MinerDeal)
 		return nil, err
 	}
 
-	// --- BEGIN PUBLISH DEALS ---
-	log.Info("publishing deal")
-
-	storageDeal := actors.StorageDeal{
-		Proposal: deal.Proposal,
-	}
-	if err := api.SignWith(ctx, p.full.WalletSign, waddr, &storageDeal); err != nil {
-		return nil, xerrors.Errorf("signing storage deal failed: ", err)
-	}
-
-	params, err := actors.SerializeParams(&actors.PublishStorageDealsParams{
-		Deals: []actors.StorageDeal{storageDeal},
-	})
-	if err != nil {
-		return nil, xerrors.Errorf("serializing PublishStorageDeals params failed: ", err)
+	smDeal := storagemarket.MinerDeal{
+		Client:      deal.Client,
+		Proposal:    deal.Proposal,
+		ProposalCid: deal.ProposalCid,
+		State:       deal.State,
+		Ref:         deal.Ref,
+		SectorID:    deal.SectorID,
 	}
 
-	// TODO: We may want this to happen after fetching data
-	smsg, err := p.full.MpoolPushMessage(ctx, &types.Message{
-		To:       actors.StorageMarketAddress,
-		From:     waddr,
-		Value:    types.NewInt(0),
-		GasPrice: types.NewInt(0),
-		GasLimit: types.NewInt(1000000),
-		Method:   actors.SMAMethods.PublishStorageDeals,
-		Params:   params,
-	})
+	dealId, mcid, err := p.spn.PublishDeals(ctx, smDeal)
 	if err != nil {
 		return nil, err
 	}
-	r, err := p.full.StateWaitMsg(ctx, smsg.Cid())
-	if err != nil {
-		return nil, err
-	}
-	if r.Receipt.ExitCode != 0 {
-		return nil, xerrors.Errorf("publishing deal failed: exit %d", r.Receipt.ExitCode)
-	}
-	var resp actors.PublishStorageDealResponse
-	if err := resp.UnmarshalCBOR(bytes.NewReader(r.Receipt.Return)); err != nil {
-		return nil, err
-	}
-	if len(resp.DealIDs) != 1 {
-		return nil, xerrors.Errorf("got unexpected number of DealIDs from")
-	}
-	// --- END PUBLISH DEALS ---
 
 	log.Info("fetching data for a deal")
-	mcid := smsg.Cid()
 	err = p.sendSignedResponse(&Response{
 		State: api.DealAccepted,
 
 		Proposal:       deal.ProposalCid,
 		PublishMessage: &mcid,
-		StorageDeal:    &storageDeal,
+		StorageDeal:    &actors.StorageDeal{Proposal: deal.Proposal},
 	})
 	if err != nil {
 		return nil, err
@@ -172,7 +139,7 @@ func (p *Provider) accept(ctx context.Context, deal MinerDeal) (func(*MinerDeal)
 	)
 
 	return func(deal *MinerDeal) {
-		deal.DealID = resp.DealIDs[0]
+		deal.DealID = uint64(dealId)
 	}, nil
 }
 

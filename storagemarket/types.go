@@ -73,7 +73,7 @@ type StorageProviderNode interface {
 	GetBalance(ctx context.Context, addr address.Address) (Balance, error)
 
 	// Publishes deal on chain
-	PublishDeals(ctx context.Context, deal MinerDeal) (DealID, error)
+	PublishDeals(ctx context.Context, deal MinerDeal) (DealID, cid.Cid, error)
 
 	// ListProviderDeals lists all deals associated with a storage provider
 	// TODO: paging or delta-based return values
