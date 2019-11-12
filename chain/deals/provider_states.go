@@ -91,6 +91,7 @@ func (p *Provider) accept(ctx context.Context, deal MinerDeal) (func(*MinerDeal)
 		return nil, err
 	}
 
+	// --- BEGIN PUBLISH DEALS ---
 	log.Info("publishing deal")
 
 	storageDeal := actors.StorageDeal{
@@ -134,6 +135,7 @@ func (p *Provider) accept(ctx context.Context, deal MinerDeal) (func(*MinerDeal)
 	if len(resp.DealIDs) != 1 {
 		return nil, xerrors.Errorf("got unexpected number of DealIDs from")
 	}
+	// --- END PUBLISH DEALS ---
 
 	log.Info("fetching data for a deal")
 	mcid := smsg.Cid()
