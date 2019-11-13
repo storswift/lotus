@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -57,31 +58,35 @@ var syncWaitCmd = &cli.Command{
 	Name:  "wait",
 	Usage: "Wait for sync to be complete",
 	Action: func(cctx *cli.Context) error {
-		napi, closer, err := GetFullNodeAPI(cctx)
+		api, closer, err := GetFullNodeAPI(cctx)
 		if err != nil {
 			return err
 		}
 		defer closer()
 		ctx := ReqContext(cctx)
 
-		for {
-			ss, err := napi.SyncState(ctx)
-			if err != nil {
-				return err
-			}
-
-			var target []cid.Cid
-			if ss.Target != nil {
-				target = ss.Target.Cids()
-			}
-
-			fmt.Printf("\r\x1b[2KTarget: %s\tState: %s\tHeight: %d", target, chain.SyncStageString(ss.Stage), ss.Height)
-			if ss.Stage == api.StageSyncComplete {
-				fmt.Println("\nDone")
-				return nil
-			}
-
-			time.Sleep(1 * time.Second)
-		}
+		return SyncWait(ctx, api)
 	},
+}
+
+func SyncWait(ctx context.Context, napi api.FullNode) error {
+	for {
+		ss, err := napi.SyncState(ctx)
+		if err != nil {
+			return err
+		}
+
+		var target []cid.Cid
+		if ss.Target != nil {
+			target = ss.Target.Cids()
+		}
+
+		fmt.Printf("\r\x1b[2KTarget: %s\tState: %s\tHeight: %d", target, chain.SyncStageString(ss.Stage), ss.Height)
+		if ss.Stage == api.StageSyncComplete {
+			fmt.Println("\nDone")
+			return nil
+		}
+
+		time.Sleep(1 * time.Second)
+	}
 }

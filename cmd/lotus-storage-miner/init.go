@@ -99,6 +99,12 @@ var initCmd = &cli.Command{
 			return xerrors.Errorf("Remote API version didn't match (local %x, remote %x)", build.APIVersion, v.APIVersion)
 		}
 
+		log.Info("Waiting for full node to sync")
+
+		if err := lcli.SyncWait(ctx, api); err != nil {
+			return err
+		}
+
 		log.Info("Initializing repo")
 
 		if err := r.Init(repo.StorageMiner); err != nil {
