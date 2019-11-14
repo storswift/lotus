@@ -34,18 +34,18 @@ type TipSetKey struct {
 
 // NewTipSetKey builds a new key from a slice of CIDs.
 // The CIDs are assumed to be ordered correctly.
-func NewTipSetKey(cids ...cid.Cid) TipSetKey {
+func NewTipSetKey(cids ...cid.Cid) *TipSetKey {
 	encoded := encodeKey(cids)
-	return TipSetKey{string(encoded)}
+	return &TipSetKey{string(encoded)}
 }
 
 // TipSetKeyFromBytes wraps an encoded key, validating correct decoding.
-func TipSetKeyFromBytes(encoded []byte) (TipSetKey, error) {
+func TipSetKeyFromBytes(encoded []byte) (*TipSetKey, error) {
 	_, err := decodeKey(encoded)
 	if err != nil {
-		return TipSetKey{}, err
+		return &TipSetKey{}, err
 	}
-	return TipSetKey{string(encoded)}, nil
+	return &TipSetKey{string(encoded)}, nil
 }
 
 // Cids returns a slice of the CIDs comprising this key.

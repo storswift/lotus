@@ -18,7 +18,7 @@ func TestTipSetKey(t *testing.T) {
 	fmt.Println(len(c1.Bytes()))
 
 	t.Run("zero value", func(t *testing.T) {
-		assert.Equal(t, TipSetKey{}, NewTipSetKey())
+		assert.Equal(t, TipSetKey{}, *NewTipSetKey())
 	})
 
 	t.Run("CID extraction", func(t *testing.T) {
@@ -42,7 +42,7 @@ func TestTipSetKey(t *testing.T) {
 	})
 
 	t.Run("encoding", func(t *testing.T) {
-		keys := []TipSetKey {
+		keys := []*TipSetKey {
 			NewTipSetKey(),
 			NewTipSetKey(c1),
 			NewTipSetKey(c1, c2, c3),
@@ -70,12 +70,12 @@ func TestTipSetKey(t *testing.T) {
 	})
 }
 
-func verifyJson(t *testing.T, expected string, k TipSetKey) {
+func verifyJson(t *testing.T, expected string, k *TipSetKey) {
 	bytes, err := k.MarshalJSON()
 	require.NoError(t, err)
 	assert.Equal(t, expected, string(bytes))
 
-	var rehydrated TipSetKey
+	rehydrated := &TipSetKey{}
 	err = rehydrated.UnmarshalJSON(bytes)
 	require.NoError(t, err)
 	assert.Equal(t, k, rehydrated)
