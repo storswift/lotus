@@ -5,12 +5,16 @@ import (
 	"context"
 
 	"github.com/ipfs/go-cid"
+	unixfile "github.com/ipfs/go-unixfs/file"
 	"golang.org/x/xerrors"
 
 	"github.com/filecoin-project/lotus/api"
 	"github.com/filecoin-project/lotus/chain/actors"
 	"github.com/filecoin-project/lotus/chain/address"
 	"github.com/filecoin-project/lotus/chain/types"
+	"github.com/filecoin-project/lotus/lib/padreader"
+	"github.com/filecoin-project/lotus/node/modules/dtypes"
+	"github.com/filecoin-project/lotus/storage/sectorblocks"
 	"github.com/filecoin-project/lotus/storagemarket"
 )
 
@@ -27,10 +31,19 @@ type ProviderNodeAdapterAPI interface {
 
 type ProviderNodeAdapter struct {
 	api ProviderNodeAdapterAPI
+
+	// this goes away with the data transfer module
+	dag dtypes.StagingDAG
+
+	secb *sectorblocks.SectorBlocks
 }
 
-func NewProviderNodeAdapter(full api.FullNode) storagemarket.StorageProviderNode {
-	return &ProviderNodeAdapter{api: full}
+func NewProviderNodeAdapter(full api.FullNode, dag dtypes.StagingDAG, secb *sectorblocks.SectorBlocks) storagemarket.StorageProviderNode {
+	return &ProviderNodeAdapter{
+		api:  full,
+		dag:  dag,
+		secb: secb,
+	}
 }
 
 func (n *ProviderNodeAdapter) MostRecentStateId(ctx context.Context) (storagemarket.StateKey, error) {
@@ -130,6 +143,43 @@ func (n *ProviderNodeAdapter) PublishDeals(ctx context.Context, deal storagemark
 	}
 
 	return storagemarket.DealID(resp.DealIDs[0]), smsg.Cid(), nil
+}
+
+func (n *ProviderNodeAdapter) OnDealComplete(ctx context.Context, deal storagemarket.MinerDeal, piecePath string) (uint64, error) {
+	root, err := n.dag.Get(ctx, deal.Ref)
+	if err != nil {
+		return 0, xerrors.Errorf("failed to get file root for deal: %s", err)
+	}
+
+	// TODO: abstract this away into ReadSizeCloser + implement different modes
+	node, err := unixfile.NewUnixfsFile(ctx, n.dag, root)
+	if err != nil {
+		return 0, xerrors.Errorf("cannot open unixfs file: %s", err)
+	}
+
+	uf, ok := node.(sectorblocks.UnixfsReader)
+	if !ok {
+		// we probably got directory, unsupported for now
+		return 0, xerrors.Errorf("unsupported unixfs file type")
+	}
+
+	// TODO: uf.Size() is user input, not trusted
+	// This won't be useful / here after we migrate to putting CARs into sectors
+	size, err := uf.Size()
+	if err != nil {
+		return 0, xerrors.Errorf("getting unixfs file size: %w", err)
+	}
+	if padreader.PaddedSize(uint64(size)) != deal.Proposal.PieceSize {
+		return 0, xerrors.Errorf("deal.Proposal.PieceSize didn't match padded unixfs file size")
+	}
+
+	sectorID, err := n.secb.AddUnixfsPiece(ctx, deal.Ref, uf, deal.DealID)
+	if err != nil {
+		return 0, xerrors.Errorf("AddPiece failed: %s", err)
+	}
+	log.Warnf("New Sector: %d", sectorID)
+
+	return sectorID, nil
 }
 
 var _ storagemarket.StorageProviderNode = &ProviderNodeAdapter{}

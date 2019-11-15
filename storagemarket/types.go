@@ -86,5 +86,6 @@ type StorageProviderNode interface {
 	//UnsubscribeStorageMarketEvents(subId SubID)
 
 	// Called when a deal is complete and on chain, and data has been transferred and is ready to be added to a sector
-	//OnDealComplete(dealId uint64, deal StorageDeal, piecePath string)
+	// returns sector id
+	OnDealComplete(ctx context.Context, deal MinerDeal, piecePath string) (uint64, error)
 }
