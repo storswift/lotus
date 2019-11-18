@@ -24,6 +24,7 @@ type ProviderNodeAdapterAPI interface {
 
 	StateWaitMsg(context.Context, cid.Cid) (*api.MsgWait, error)
 	StateMarketBalance(context.Context, address.Address, *types.TipSet) (actors.StorageParticipantBalance, error)
+	StateMarketDeals(context.Context, *types.TipSet) (map[string]actors.OnChainDeal, error)
 	StateMinerWorker(context.Context, address.Address, *types.TipSet) (address.Address, error)
 
 	WalletSign(context.Context, address.Address, []byte) (*types.Signature, error)
@@ -180,6 +181,23 @@ func (n *ProviderNodeAdapter) OnDealComplete(ctx context.Context, deal storagema
 	log.Warnf("New Sector: %d", sectorID)
 
 	return sectorID, nil
+}
+
+func (n *ProviderNodeAdapter) ListProviderDeals(ctx context.Context, addr address.Address) ([]actors.OnChainDeal, error) {
+	allDeals, err := n.api.StateMarketDeals(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var out []actors.OnChainDeal
+
+	for _, deal := range allDeals {
+		if deal.Deal.Proposal.Provider == addr {
+			out = append(out, deal)
+		}
+	}
+
+	return out, nil
 }
 
 var _ storagemarket.StorageProviderNode = &ProviderNodeAdapter{}

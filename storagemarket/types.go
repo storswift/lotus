@@ -76,14 +76,7 @@ type StorageProviderNode interface {
 	PublishDeals(ctx context.Context, deal MinerDeal) (DealID, cid.Cid, error)
 
 	// ListProviderDeals lists all deals associated with a storage provider
-	// TODO: paging or delta-based return values
-	//ListProviderDeals(stateId StateKey, addr address.Address) []*StorageDeal
-
-	// Subscribes to storage market actor state changes for a given address.
-	//SubscribeStorageMarketEvents(addr address.Address, handler StorageMarketEventHandler) (SubID, error)
-
-	// Cancels a subscription
-	//UnsubscribeStorageMarketEvents(subId SubID)
+	ListProviderDeals(ctx context.Context, addr address.Address) ([]StorageDeal, error)
 
 	// Called when a deal is complete and on chain, and data has been transferred and is ready to be added to a sector
 	// returns sector id
