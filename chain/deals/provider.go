@@ -49,7 +49,6 @@ type Provider struct {
 
 	secb   *sectorblocks.SectorBlocks
 	sminer *storage.Miner
-	full   api.FullNode
 	spn    storagemarket.StorageProviderNode
 
 	// TODO: This will go away once storage market module + CAR
@@ -98,7 +97,6 @@ func NewProvider(ds dtypes.MetadataDS, sminer *storage.Miner, secb *sectorblocks
 		sminer:       sminer,
 		dag:          dag,
 		dataTransfer: dataTransfer,
-		full:         fullNode,
 		spn:          spn,
 		secb:         secb,
 

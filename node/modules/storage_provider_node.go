@@ -27,6 +27,8 @@ type ProviderNodeAdapterAPI interface {
 	StateMarketDeals(context.Context, *types.TipSet) (map[string]actors.OnChainDeal, error)
 	StateMinerWorker(context.Context, address.Address, *types.TipSet) (address.Address, error)
 
+	MarketEnsureAvailable(context.Context, address.Address, types.BigInt) error
+
 	WalletSign(context.Context, address.Address, []byte) (*types.Signature, error)
 }
 
@@ -198,6 +200,18 @@ func (n *ProviderNodeAdapter) ListProviderDeals(ctx context.Context, addr addres
 	}
 
 	return out, nil
+}
+
+func (n *ProviderNodeAdapter) GetMinerWorker(ctx context.Context, miner address.Address) (address.Address, error) {
+	return n.api.StateMinerWorker(ctx, miner, nil)
+}
+
+func (n *ProviderNodeAdapter) SignBytes(ctx context.Context, signer address.Address, b []byte) (*types.Signature, error) {
+	return n.api.WalletSign(ctx, signer, b)
+}
+
+func (n *ProviderNodeAdapter) EnsureFunds(ctx context.Context, addr address.Address, amt types.BigInt) error {
+	return n.api.MarketEnsureAvailable(ctx, addr, amt)
 }
 
 var _ storagemarket.StorageProviderNode = &ProviderNodeAdapter{}

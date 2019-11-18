@@ -112,12 +112,12 @@ func (p *Provider) signAsk(a *types.StorageAsk) (*types.SignedStorageAsk, error)
 		return nil, err
 	}
 
-	worker, err := p.getWorker(p.actor)
+	worker, err := p.spn.GetMinerWorker(context.TODO(), p.actor)
 	if err != nil {
 		return nil, xerrors.Errorf("failed to get worker to sign ask: %w", err)
 	}
 
-	sig, err := p.full.WalletSign(context.TODO(), worker, b)
+	sig, err := p.spn.SignBytes(context.TODO(), worker, b)
 	if err != nil {
 		return nil, err
 	}

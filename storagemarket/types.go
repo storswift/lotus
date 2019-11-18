@@ -69,6 +69,9 @@ type StorageProviderNode interface {
 	// Adds funds with the StorageMinerActor for a storage participant.  Used by both providers and clients.
 	AddFunds(ctx context.Context, addr address.Address, amount BigInt) error
 
+	// Ensures that a storage market participant has a certain amount of available funds
+	EnsureFunds(ctx context.Context, addr address.Address, amt types.BigInt) error
+
 	// GetBalance returns locked/unlocked for a storage participant.  Used by both providers and clients.
 	GetBalance(ctx context.Context, addr address.Address) (Balance, error)
 
@@ -81,4 +84,10 @@ type StorageProviderNode interface {
 	// Called when a deal is complete and on chain, and data has been transferred and is ready to be added to a sector
 	// returns sector id
 	OnDealComplete(ctx context.Context, deal MinerDeal, piecePath string) (uint64, error)
+
+	// returns the worker address associated with a miner
+	GetMinerWorker(ctx context.Context, miner address.Address) (address.Address, error)
+
+	// Signs bytes
+	SignBytes(ctx context.Context, signer address.Address, b []byte) (*types.Signature, error)
 }

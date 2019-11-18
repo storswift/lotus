@@ -47,7 +47,7 @@ func (p *Provider) accept(ctx context.Context, deal MinerDeal) (func(*MinerDeal)
 		return nil, xerrors.Errorf("deal proposal with unsupported serialization: %s", deal.Proposal.PieceSerialization)
 	}
 
-	head, err := p.full.ChainHead(ctx)
+	head, err := p.spn.MostRecentStateId(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +67,7 @@ func (p *Provider) accept(ctx context.Context, deal MinerDeal) (func(*MinerDeal)
 	}
 
 	// check market funds
-	clientMarketBalance, err := p.full.StateMarketBalance(ctx, deal.Proposal.Client, nil)
+	clientMarketBalance, err := p.spn.GetBalance(ctx, deal.Proposal.Client)
 	if err != nil {
 		return nil, xerrors.Errorf("getting client market balance failed: %w", err)
 	}
@@ -78,13 +78,13 @@ func (p *Provider) accept(ctx context.Context, deal MinerDeal) (func(*MinerDeal)
 		return nil, xerrors.New("clientMarketBalance.Available too small")
 	}
 
-	waddr, err := p.full.StateMinerWorker(ctx, deal.Proposal.Provider, nil)
+	waddr, err := p.spn.GetMinerWorker(ctx, deal.Proposal.Provider)
 	if err != nil {
 		return nil, err
 	}
 
 	// TODO: check StorageCollateral (may be too large (or too small))
-	if err := p.full.MarketEnsureAvailable(ctx, waddr, deal.Proposal.StorageCollateral); err != nil {
+	if err := p.spn.EnsureFunds(ctx, waddr, deal.Proposal.StorageCollateral); err != nil {
 		return nil, err
 	}
 
