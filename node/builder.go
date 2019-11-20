@@ -225,6 +225,8 @@ func Online() Option {
 			Override(new(dtypes.ClientDataTransfer), modules.NewClientDAGServiceDataTransfer),
 			Override(new(*deals.ClientRequestValidator), deals.NewClientRequestValidator),
 			Override(new(*deals.Client), deals.NewClient),
+			Override(new(storagemarket.StorageClient), deals.NewClient),
+			Override(new(storagemarket.StorageClientNode), modules.NewClientNodeAdapter),
 			Override(RegisterClientValidatorKey, modules.RegisterClientValidator),
 			Override(RunDealClientKey, modules.RunDealClient),
 
