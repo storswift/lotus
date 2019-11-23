@@ -79,20 +79,32 @@ func NewGraphSyncDataTransfer(parent context.Context, host host.Host, gs graphsy
 // if an incoming request does not match a previous push request, it returns an error.
 func (impl *graphsyncImpl) GsReqRecdHook(p peer.ID, request graphsync.RequestData) ([]graphsync.ExtensionData, error) {
 	var resp []graphsync.ExtensionData
-	chid, _, err := impl.getChannelIDAndData(request)
+	chid, err := impl.getChannelIDAndData(request)
+	if err != nil {
+		return resp, err
+	}
 
 	extData := graphsync.ExtensionData{
 		Name: ExtensionDataTransfer,
 		Data: nil,
-	}
-	if err != nil {
-		return resp, err
 	}
 	if !impl.HasPushChannel(chid) {
 		return resp, errors.New("could not find push channel")
 	}
 	resp = append(resp, extData)
 	return resp, nil
+}
+
+func (impl *graphsyncImpl) GsRespRecdHook(p peer.ID, response graphsync.ResponseData) error {
+	chid, err := impl.getChannelIDAndData(response)
+	if err != nil {
+		return err
+	}
+
+	if !impl.HasPullChannel(chid) {
+		return errors.New("could not find pull channel")
+	}
+	return nil
 }
 
 // gsExtended is a small interface used by getChannelIDAndData
@@ -102,20 +114,20 @@ type gsExtended interface {
 
 // getChannelIDAndData extracts extension data and creates a channel id then returns
 // both. Returns any errors.
-func (impl *graphsyncImpl) getChannelIDAndData(extendedData gsExtended) (datatransfer.ChannelID, *ExtensionDataTransferData, error) {
+func (impl *graphsyncImpl) getChannelIDAndData(extendedData gsExtended) (datatransfer.ChannelID, error) {
 	data, ok := extendedData.Extension(ExtensionDataTransfer)
 	if !ok {
-		return datatransfer.ChannelID{}, nil, errors.New("extension not present")
+		return datatransfer.ChannelID{}, errors.New("extension not present")
 	}
 	unm, err := impl.unmarshalExtensionData(data)
 	if err != nil {
-		return datatransfer.ChannelID{}, nil, err
+		return datatransfer.ChannelID{}, err
 	}
 	chid := datatransfer.ChannelID{
 		Initiator: impl.peerID,
 		ID:        datatransfer.TransferID(unm.TransferID),
 	}
-	return chid, unm, nil
+	return chid, nil
 }
 
 // unmarshalExtensionData instatiates an extension data struct & unmarshals data into i
