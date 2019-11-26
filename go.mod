@@ -11,9 +11,9 @@ require (
 	github.com/fatih/color v1.7.0 // indirect
 	github.com/filecoin-project/chain-validation v0.0.0-20191106200742-11986803c0f7
 	github.com/filecoin-project/go-amt-ipld v0.0.0-20190919045431-3650716fff16
-	github.com/filecoin-project/go-bls-sigs v0.0.0-20190718224239-4bc4b8a7bbf8
+	github.com/filecoin-project/go-bls-sigs v0.0.0-20191119213154-1c177e24fd71
 	github.com/filecoin-project/go-leb128 v0.0.0-20190212224330-8d79a5489543
-	github.com/filecoin-project/go-sectorbuilder v0.0.0-00010101000000-000000000000
+	github.com/filecoin-project/go-sectorbuilder v0.0.0-20191125152826-0aeff9f9485d
 	github.com/gbrlsnchs/jwt/v3 v3.0.0-beta.1
 	github.com/go-ole/go-ole v1.2.4 // indirect
 	github.com/google/go-cmp v0.3.1 // indirect
@@ -112,3 +112,5 @@ replace github.com/golangci/golangci-lint => github.com/golangci/golangci-lint v
 replace github.com/filecoin-project/go-bls-sigs => ./extern/go-bls-sigs
 
 replace github.com/filecoin-project/go-sectorbuilder => ./extern/go-sectorbuilder
+
+replace github.com/filecoin-project/chain-validation => ../chain-validation

@@ -27,7 +27,7 @@ func (a *Applier) ApplyMessage(eCtx *vchain.ExecutionContext, state vstate.Wrapp
 
 	base := st.Cid()
 	randSrc := &vmRand{eCtx}
-	minerAddr, err := address.NewFromBytes([]byte(eCtx.MinerOwner))
+	minerAddr, err := address.NewFromBytes(eCtx.MinerOwner.Bytes())
 	if err != nil {
 		return vchain.MessageReceipt{}, err
 	}
